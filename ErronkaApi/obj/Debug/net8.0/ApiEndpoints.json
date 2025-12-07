@@ -1,0 +1,18 @@
+[
+  {
+    "ContainingType": "ErronkaApi.Controlerrak.LoginKontrollera",
+    "Method": "Login",
+    "RelativePath": "api/LoginKontrollera",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "loginDto",
+        "Type": "ErronkaApi.DTOak.LoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
