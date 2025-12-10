@@ -19,7 +19,7 @@ namespace TPVBarra.Mapeoak
             Map(x => x.pasahitza).Column("pasahitza").Length(45);
             References(x => x.rola).Column("rola_id").Not.Nullable().Not.LazyLoad();
             Map(x => x.ezabatua).Column("ezabatua");
-            Map(x => x.aktibatuta).Column("aktibatua");
+            Map(x => x.aktibatuta).Column("chat");
         }
     }
 }

@@ -24,10 +24,10 @@ namespace ErronkaApi.NHibernate
                 .Database(
                     MySQLConfiguration.Standard
                         .ConnectionString(cs => cs
-                            .Server("localhost") // 192.168.115.161  localhost
-                            .Database("erronka") // tpv  erronka
-                            .Username("root") // Admin  root
-                            .Password("1MG2024") // Taldea4  1MG2024
+                            .Server("192.168.115.161") // 192.168.115.161  localhost
+                            .Database("tpv") // tpv  erronka
+                            .Username("admin") // Admin  root
+                            .Password("Taldea4") // Taldea4  1MG2024
                         )
                 )
                 .Mappings(m =>
