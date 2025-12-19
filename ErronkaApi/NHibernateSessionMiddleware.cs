@@ -13,7 +13,6 @@ public class NHibernateSessionMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        // Abrimos una sesión
         var session = _sessionFactory.OpenSession();
         NHibernate.Context.CallSessionContext.Bind(session);
 
@@ -26,7 +25,6 @@ public class NHibernateSessionMiddleware
         }
         finally
         {
-            // Cerramos la sesión
             NHibernate.Context.CallSessionContext.Unbind(_sessionFactory);
 
             if (session.IsOpen)

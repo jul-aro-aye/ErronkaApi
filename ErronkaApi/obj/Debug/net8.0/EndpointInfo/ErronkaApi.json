@@ -5,6 +5,49 @@
     "version": "1.0"
   },
   "paths": {
+    "/api/eskaerak": {
+      "post": {
+        "tags": [
+          "Eskaerak"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EskaeraSortuDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EskaeraSortuDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/EskaeraSortuDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/KategoriakKontrollerra": {
+      "get": {
+        "tags": [
+          "KategoriakKontrollerra"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/LoginKontrollera": {
       "post": {
         "tags": [
@@ -35,10 +78,76 @@
           }
         }
       }
+    },
+    "/api/ProduktuakKontrollera/kategoria/{kategoriaId}": {
+      "get": {
+        "tags": [
+          "ProduktuakKontrollera"
+        ],
+        "parameters": [
+          {
+            "name": "kategoriaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "EskaeraProduktuaSortuDTO": {
+        "type": "object",
+        "properties": {
+          "produktuaId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kantitatea": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prezioUnitarioa": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EskaeraSortuDTO": {
+        "type": "object",
+        "properties": {
+          "erabiltzaileId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mahaiaId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "komensalak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "produktuak": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EskaeraProduktuaSortuDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "LoginDTO": {
         "type": "object",
         "properties": {
