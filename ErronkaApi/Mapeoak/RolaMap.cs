@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ErronkaApi.Modeloak;
 
-namespace TPVBarra.Mapeoak
+namespace ErronkaApi.Mapeoak
 {
     internal class RolaMap : ClassMap<Rola>
     {

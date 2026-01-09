@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ErronkaApi.Kontrollerrak
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Produktuak")]
     public class ProduktuakKontrollera : ControllerBase
     {
         private readonly ProduktuaRepository _repo;

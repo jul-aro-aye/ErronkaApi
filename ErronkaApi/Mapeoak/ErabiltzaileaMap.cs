@@ -13,7 +13,7 @@ namespace ErronkaApi.Mapeoak
         public ErabiltzaileaMap()
         {
             Table("erabiltzaileak");
-            Id(x => x.id).Column("ID").GeneratedBy.Identity();
+            Id(x => x.id).Column("id").GeneratedBy.Identity();
             Map(x => x.erabiltzailea).Column("erabiltzailea").Length(45);
             Map(x => x.emaila).Column("email").Length(100);
             Map(x => x.pasahitza).Column("pasahitza").Length(45);

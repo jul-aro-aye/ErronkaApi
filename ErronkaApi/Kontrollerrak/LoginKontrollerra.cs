@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ErronkaApi.Controlerrak
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Logina")]
     public class LoginKontrollera : ControllerBase
     {
         private readonly ErabiltzaileaRepository _repo;

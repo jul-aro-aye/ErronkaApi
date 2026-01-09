@@ -5,7 +5,7 @@ using System.Linq;
 namespace ErronkaApi.Kontrollerrak
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Kategoria")]
     public class KategoriaKontrollerra : ControllerBase
     {
         private readonly KategoriaRepository _repo;
