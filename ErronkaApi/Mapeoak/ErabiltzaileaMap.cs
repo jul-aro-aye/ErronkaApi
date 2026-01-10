@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ErronkaApi.Mapeoak
+namespace TPVBarra.Mapeoak
 {
     internal class ErabiltzaileaMap : ClassMap<Erabiltzailea>
     {

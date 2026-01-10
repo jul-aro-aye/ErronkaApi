@@ -26,9 +26,6 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton(NHibernateHelper.SessionFactory);
 builder.Services.AddTransient<ErabiltzaileaRepository>();
-builder.Services.AddTransient<KategoriaRepository>();
-builder.Services.AddTransient<ProduktuaRepository>();
-builder.Services.AddTransient<EskaeraRepository>();
 
 
 var app = builder.Build();

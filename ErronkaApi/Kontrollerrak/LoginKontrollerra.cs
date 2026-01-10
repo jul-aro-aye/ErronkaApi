@@ -26,6 +26,11 @@ namespace ErronkaApi.Controlerrak
                 return Unauthorized(new { mezua = "Erabiltzaile edo pasahitz okerra." });
             }
 
+            if (erabiltzailea.ezabatua)
+            {
+                return Unauthorized(new { mezua = "Erabiltzailea ez dago aktibo." });
+            }
+
             return Ok(erabiltzailea);
         }
 
