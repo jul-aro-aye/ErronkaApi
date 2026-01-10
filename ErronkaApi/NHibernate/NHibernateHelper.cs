@@ -33,10 +33,15 @@ namespace ErronkaApi.NHibernate
                 .Mappings(m =>
                 {
                     m.FluentMappings.AddFromAssemblyOf<ErabiltzaileaMap>();
+                    m.FluentMappings.AddFromAssemblyOf<ProduktuaMap>();
+                    m.FluentMappings.AddFromAssemblyOf<EskaeraMap>();
+                    m.FluentMappings.AddFromAssemblyOf<MahaiaMap>();
+                    m.FluentMappings.AddFromAssemblyOf<EskaeraMahaiakMap>();
+                    m.FluentMappings.AddFromAssemblyOf<RolaMap>();
                 })
                 .ExposeConfiguration(cfg =>
                 {
-                    cfg.SetProperty("current_session_context_class", "call"); // Ez dezan sortu taula exekuzio bakoitzeko
+                    cfg.SetProperty("current_session_context_class", "call");
                 })
                 .BuildSessionFactory();
         }
