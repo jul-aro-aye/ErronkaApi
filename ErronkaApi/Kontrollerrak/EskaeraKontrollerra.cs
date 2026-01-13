@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ErronkaApi.Repositorioak;
 using ErronkaApi.NHibernate;
 using System.Linq;
+using ErronkaApi.DTOak;
 
 [ApiController]
 [Route("api/eskaerak")]
@@ -19,25 +20,20 @@ public class EskaeraKontrollerra : ControllerBase
     [HttpPost]
     public IActionResult SortuEskaera([FromBody] EskaeraSortuDTO dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+    if (!ModelState.IsValid)
+        return BadRequest(ModelState);
 
-        var eskaera = _repo.SortuEskaera(dto);
+        var erantzuna = _repo.SortuEskaera(dto);
 
-        return Ok(new
+        if (erantzuna.Code == 200)
         {
-            eskaera.id,
-            eskaera.komensalak,
-            eskaera.egoera,
-            eskaera.sortzeData,
-            Produktuak = eskaera.EskaeraProduktuak.Select(p => new
-            {
-                p.Produktua.id,
-                p.Kantitatea,
-                p.PrezioUnitarioa,
-                p.Guztira
-            })
-        });
+            return Ok(erantzuna);
+            
+        }
+        else {
+            return BadRequest(erantzuna);
+        }
+
 
     }
 }

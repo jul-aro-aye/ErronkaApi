@@ -14,6 +14,6 @@ namespace ErronkaApi.Modeloak
 
         public virtual decimal PrezioUnitarioa { get; set; }
 
-        public virtual decimal Guztira { get; protected set; }
+        public virtual decimal Guztira { get; set; }
     }
 }
