@@ -29,6 +29,7 @@ builder.Services.AddTransient<ErabiltzaileaRepository>();
 builder.Services.AddTransient<KategoriaRepository>();
 builder.Services.AddTransient<ProduktuaRepository>();
 builder.Services.AddTransient<EskaeraRepository>();
+builder.Services.AddTransient<MahaiaRepository>();
 
 
 var app = builder.Build();

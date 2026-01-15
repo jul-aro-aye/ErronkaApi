@@ -16,20 +16,21 @@ namespace ErronkaApi.Repositorioak
             _sessionFactory = sessionFactory;
         }
 
-        public ErantzunaDTO SortuEskaera(EskaeraSortuDTO dto)
+        public ErantzunaDTO<string> SortuEskaera(EskaeraSortuDTO dto)
         {
             using var session = _sessionFactory.OpenSession();
             using var tx = session.BeginTransaction();
             try
             {
-                var mahaia = session.Get<Mahaia>(1);
+                Console.WriteLine($"Mahaia jasota: {dto.MahaiaId}");
+                var mahaia = session.Get<Mahaia>(dto.MahaiaId);
 
                 if (mahaia == null)
-                    return new ErantzunaDTO
+                    return new ErantzunaDTO<string>
                     {
                         Code = 400,
                         Message = "Mahaia ez da aurkitu",
-                        ProduktuakStockGabe = new List<string>()
+                        Datuak = new List<string>()
                     };
 
                 var produktuakStockGabe = new List<string>();
@@ -44,13 +45,12 @@ namespace ErronkaApi.Repositorioak
                 }
                 if (produktuakStockGabe.Any())
                 {
-                    ErantzunaDTO erantzuna = new ErantzunaDTO
+                    return new ErantzunaDTO<string>
                     {
                         Code = 400,
                         Message = "Stock gabe dauden produktuak daude",
-                        ProduktuakStockGabe = produktuakStockGabe
+                        Datuak = produktuakStockGabe
                     };
-                    return erantzuna;
                 }
 
                 var eskaera = new Eskaera
@@ -59,7 +59,7 @@ namespace ErronkaApi.Repositorioak
                     komensalak = dto.Komensalak,
                     egoera = "irekita",
                     sortzeData = DateTime.Now,
-                    mahaia_id = 1
+                    mahaia_id = dto.MahaiaId
                 };
 
                 var eskaeraMahaiak = new EskaeraMahaiak
@@ -93,21 +93,21 @@ namespace ErronkaApi.Repositorioak
 
                 IList<object> eskaerak = new List<object> { eskaera };
 
-                return new ErantzunaDTO
+                return new ErantzunaDTO<string>
                 {
                     Code = 200,
                     Message = "Eskaera ongi sortu da",
-                    ProduktuakStockGabe = new List<string>()
+                    Datuak = new List<string>()
                 };
             }
             catch (Exception ex)
             {
                 tx.Rollback();
-                return new ErantzunaDTO
+                return new ErantzunaDTO<string>
                 {
                     Code = 500,
                     Message = "Errore bat egon da: " + ex.Message,
-                    ProduktuakStockGabe = new List<string>()
+                    Datuak = new List<string>()
                 };
             }
         }
