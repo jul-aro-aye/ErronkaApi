@@ -33,7 +33,21 @@ public class EskaeraKontrollerra : ControllerBase
         else {
             return BadRequest(erantzuna);
         }
+    }
 
+    [HttpGet]
+    public IActionResult LortuEskaerak([FromQuery] int erabiltzaileId)
+    {
+        var erantzuna = _repo.LortuEskaerak(erabiltzaileId);
 
+        return StatusCode(erantzuna.Code, erantzuna);
+    }
+
+    [HttpGet("{eskaeraId}/produktuak")]
+    public IActionResult LortuEskaeraProduktuak(int eskaeraId)
+    {
+        var erantzuna = _repo.LortuEskaeraProduktuak(eskaeraId);
+
+        return StatusCode(erantzuna.Code, erantzuna);
     }
 }

@@ -111,5 +111,82 @@ namespace ErronkaApi.Repositorioak
                 };
             }
         }
+
+        public ErantzunaDTO<EskaeraDTO> LortuEskaerak(int erabiltzaileId)
+        {
+            using var session = _sessionFactory.OpenSession();
+            try
+            {
+                var eskaerak = session.Query<Eskaera>()
+                    .Where(e => e.erabiltzaileId == erabiltzaileId)
+                    .OrderByDescending(e => e.sortzeData)
+                    .ToList();
+
+                var dtoak = eskaerak.Select(e => new EskaeraDTO
+                {
+                    Id = e.id,
+                    Izena = $"Eskaera #{e.id} ({e.sortzeData:dd/MM/yyyy HH:mm})",
+                    MahaiaId = e.mahaia_id,
+                    Data = e.sortzeData.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
+
+                return new ErantzunaDTO<EskaeraDTO>
+                {
+                    Code = 200,
+                    Message = "Eskaerak lortu dira",
+                    Datuak = dtoak
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ErantzunaDTO<EskaeraDTO>
+                {
+                    Code = 500,
+                    Message = "Errore bat egon da: " + ex.Message,
+                    Datuak = new List<EskaeraDTO>()
+                };
+            }
+        }
+
+        public ErantzunaDTO<EskaeraProduktuaDTO> LortuEskaeraProduktuak(int eskaeraId)
+        {
+            using var session = _sessionFactory.OpenSession();
+            try
+            {
+                var eskaera = session.Get<Eskaera>(eskaeraId);
+                if (eskaera == null)
+                {
+                    return new ErantzunaDTO<EskaeraProduktuaDTO>
+                    {
+                        Code = 404,
+                        Message = "Eskaera ez da aurkitu",
+                        Datuak = new List<EskaeraProduktuaDTO>()
+                    };
+                }
+
+                var dtoak = eskaera.EskaeraProduktuak.Select(ep => new EskaeraProduktuaDTO
+                {
+                    ProduktuaId = ep.Produktua.id,
+                    ProduktuaIzena = ep.Produktua.izena,
+                    PrezioUnitarioa = ep.PrezioUnitarioa
+                }).ToList();
+
+                return new ErantzunaDTO<EskaeraProduktuaDTO>
+                {
+                    Code = 200,
+                    Message = "Produktuak lortu dira",
+                    Datuak = dtoak
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ErantzunaDTO<EskaeraProduktuaDTO>
+                {
+                    Code = 500,
+                    Message = "Errore bat egon da: " + ex.Message,
+                    Datuak = new List<EskaeraProduktuaDTO>()
+                };
+            }
+        }
     }
 }
