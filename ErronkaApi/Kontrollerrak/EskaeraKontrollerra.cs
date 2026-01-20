@@ -50,4 +50,34 @@ public class EskaeraKontrollerra : ControllerBase
 
         return StatusCode(erantzuna.Code, erantzuna);
     }
+
+    [HttpDelete("{eskaeraId}")]
+    public IActionResult EzabatuEskaera(int eskaeraId)
+    {
+        var erantzuna = _repo.EzabatuEskaera(eskaeraId);
+
+        if (erantzuna.Code == 200)
+        {
+            return Ok(erantzuna);
+        }
+        else
+        {
+            return BadRequest(erantzuna);
+        }
+    }
+
+    [HttpGet("mahaiak/{mahaiaId}/kapazitatea")]
+    public IActionResult LortuMahaiKapasitatea(int mahaiaId)
+    {
+        var erantzuna = _repo.LortuMahaiKapazitatea(mahaiaId);
+
+        if (erantzuna.Code == 200)
+            return Ok(erantzuna);
+        else if (erantzuna.Code == 404)
+            return NotFound(erantzuna);
+        else
+            return StatusCode(500, erantzuna);
+    }
+
+
 }

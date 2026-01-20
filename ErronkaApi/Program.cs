@@ -5,6 +5,15 @@ using ErronkaApi.NHibernate;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5093);        // HTTP
+    options.ListenLocalhost(7236, listenOptions =>
+    {
+        listenOptions.UseHttps();     // HTTPS
+    });
+});
+
 // Add services to the container.
 
 // CORS konfigurazioa gehitu => Web-etik errorea ez emateko
@@ -41,7 +50,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors(); 
 

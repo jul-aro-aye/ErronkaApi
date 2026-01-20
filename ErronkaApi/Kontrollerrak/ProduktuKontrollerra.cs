@@ -25,7 +25,8 @@ namespace ErronkaApi.Kontrollerrak
                                        id = p.id,
                                        izena = p.izena,
                                        prezioa = (decimal)p.prezioa,
-                                       kategoria_id = p.kategoria.id
+                                       kategoria_id = p.kategoria.id,
+                                       stock_aktuala = p.stock_aktuala
                                    })
                                    .ToList();
 

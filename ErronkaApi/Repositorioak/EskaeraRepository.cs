@@ -2,6 +2,7 @@
 using Api.Modeloak;
 using ErronkaApi.DTOak;
 using ErronkaApi.Modeloak;
+using ErronkaApi.NHibernate;
 using NHibernate;
 using System;
 
@@ -32,6 +33,9 @@ namespace ErronkaApi.Repositorioak
                         Message = "Mahaia ez da aurkitu",
                         Datuak = new List<string>()
                     };
+
+                mahaia.egoera = "okupatuta";
+                session.Update(mahaia);
 
                 var produktuakStockGabe = new List<string>();
 
@@ -185,6 +189,99 @@ namespace ErronkaApi.Repositorioak
                     Code = 500,
                     Message = "Errore bat egon da: " + ex.Message,
                     Datuak = new List<EskaeraProduktuaDTO>()
+                };
+            }
+        }
+
+        public ErantzunaDTO<int> LortuMahaiKapazitatea(int mahaiaId)
+        {
+            using var session = _sessionFactory.OpenSession();
+            try
+            {
+                var mahaia = session.Get<Mahaia>(mahaiaId);
+
+                if (mahaia == null)
+                {
+                    return new ErantzunaDTO<int>
+                    {
+                        Code = 404,
+                        Message = "Mahaia ez da aurkitu",
+                        Datuak = new List<int>()
+                    };
+                }
+
+                return new ErantzunaDTO<int>
+                {
+                    Code = 200,
+                    Message = "Mahaia lortu da arrakastaz",
+                    Datuak = new List<int> { mahaia.kapazitatea }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ErantzunaDTO<int>
+                {
+                    Code = 500,
+                    Message = "Errore bat egon da: " + ex.Message,
+                    Datuak = new List<int>()
+                };
+            }
+        }
+
+        public ErantzunaDTO<string> EzabatuEskaera(int eskaeraId)
+        {
+            using var session = _sessionFactory.OpenSession();
+            using var tx = session.BeginTransaction();
+            try
+            {
+                var eskaera = session.Get<Eskaera>(eskaeraId);
+                if (eskaera == null)
+                {
+                    return new ErantzunaDTO<string>
+                    {
+                        Code = 404,
+                        Message = "Eskaera ez da aurkitu",
+                        Datuak = new List<string>()
+                    };
+                }
+
+                if (eskaera.EskaeraMahaiak.Any())
+                {
+                    foreach (var em in eskaera.EskaeraMahaiak)
+                    {
+                        em.Mahaia.egoera = "libre";
+                        session.Update(em.Mahaia);
+                        session.Delete(em);
+                    }
+                }
+
+                if (eskaera.EskaeraProduktuak.Any())
+                {
+                    foreach (var ep in eskaera.EskaeraProduktuak)
+                    {
+                        session.Delete(ep);
+                    }
+                }
+
+                session.Delete(eskaera);
+
+                tx.Commit();
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 200,
+                    Message = "Eskaera ezabatu da arrakastaz",
+                    Datuak = new List<string>()
+                };
+            }
+            catch (Exception ex)
+            {
+                tx.Rollback();
+                return new ErantzunaDTO<string>
+                {
+                    Code = 500,
+                    Message = "Errore bat egon da: " + ex.Message,
+                    Datuak = new List<string>()
                 };
             }
         }
