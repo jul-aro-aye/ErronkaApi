@@ -116,13 +116,12 @@ namespace ErronkaApi.Repositorioak
             }
         }
 
-        public ErantzunaDTO<EskaeraDTO> LortuEskaerak(int erabiltzaileId)
+        public ErantzunaDTO<EskaeraDTO> LortuEskaerak()
         {
             using var session = _sessionFactory.OpenSession();
             try
             {
                 var eskaerak = session.Query<Eskaera>()
-                    .Where(e => e.erabiltzaileId == erabiltzaileId)
                     .OrderByDescending(e => e.sortzeData)
                     .ToList();
 
@@ -152,43 +151,46 @@ namespace ErronkaApi.Repositorioak
             }
         }
 
-        public ErantzunaDTO<EskaeraProduktuaDTO> LortuEskaeraProduktuak(int eskaeraId)
+        public ErantzunaDTO<EskaeraLortuDTO> LortuEskaeraProduktuak(int eskaeraId)
         {
             using var session = _sessionFactory.OpenSession();
             try
             {
-                var eskaera = session.Get<Eskaera>(eskaeraId);
-                if (eskaera == null)
+                var produktuLista = session.Query<EskaeraProduktuak>()
+                    .Where(ep => ep.Eskaera.id == eskaeraId)
+                    .ToList();
+
+                var result = new List<EskaeraLortuDTO>();
+
+                // Unitateko ilara bakoitza sortu
+                foreach (var ep in produktuLista)
                 {
-                    return new ErantzunaDTO<EskaeraProduktuaDTO>
+                    for (int i = 0; i < ep.Kantitatea; i++)  // Kantitate bakoitzeko ilara
                     {
-                        Code = 404,
-                        Message = "Eskaera ez da aurkitu",
-                        Datuak = new List<EskaeraProduktuaDTO>()
-                    };
+                        result.Add(new EskaeraLortuDTO
+                        {
+                            ProduktuaId = ep.Produktua.id,
+                            ProduktuaIzena = ep.Produktua.izena,
+                            PrezioUnitarioa = ep.Produktua.prezioa,
+                            Kantitatea = 1  // TPV logikari egokitua
+                        });
+                    }
                 }
 
-                var dtoak = eskaera.EskaeraProduktuak.Select(ep => new EskaeraProduktuaDTO
-                {
-                    ProduktuaId = ep.Produktua.id,
-                    ProduktuaIzena = ep.Produktua.izena,
-                    PrezioUnitarioa = ep.PrezioUnitarioa
-                }).ToList();
-
-                return new ErantzunaDTO<EskaeraProduktuaDTO>
+                return new ErantzunaDTO<EskaeraLortuDTO>
                 {
                     Code = 200,
                     Message = "Produktuak lortu dira",
-                    Datuak = dtoak
+                    Datuak = result
                 };
             }
             catch (Exception ex)
             {
-                return new ErantzunaDTO<EskaeraProduktuaDTO>
+                return new ErantzunaDTO<EskaeraLortuDTO>
                 {
                     Code = 500,
                     Message = "Errore bat egon da: " + ex.Message,
-                    Datuak = new List<EskaeraProduktuaDTO>()
+                    Datuak = new List<EskaeraLortuDTO>()
                 };
             }
         }
@@ -281,6 +283,128 @@ namespace ErronkaApi.Repositorioak
                 {
                     Code = 500,
                     Message = "Errore bat egon da: " + ex.Message,
+                    Datuak = new List<string>()
+                };
+            }
+        }
+
+        public ErantzunaDTO<string> EguneratuEskaera(int eskaeraId, List<EskaeraProduktuaEditatuDTO> produktuak)
+        {
+
+            //1 eskaera lortu 
+            
+            //2 produktuak foreach 
+            //eskaeran badago? => Ez: Gehitu + stocketik kendu 
+            // => Bai: kantitatea aldatu da? (honen arabera zerbait egin) 
+            
+            //3 Eskaerako produktuetan badago baina bialitako produktuetan ez? BESTE FOREACH BAT KASU HONETAN ALDERANTZIZ
+
+            using var session = _sessionFactory.OpenSession();
+            using var tx = session.BeginTransaction();
+
+            try
+            {
+                // 1. Eskaera lortu
+                var eskaera = session.Get<Eskaera>(eskaeraId);
+                if (eskaera == null)
+                {
+                    return new ErantzunaDTO<string>
+                    {
+                        Code = 404,
+                        Message = "Eskaera ez da aurkitu",
+                        Datuak = new List<string>()
+                    };
+                }
+
+                var eskaerakoProduktuak = eskaera.EskaeraProduktuak.ToList();
+
+                // 2. Bidalitako produktuak foreach
+                foreach (var dto in produktuak)
+                {
+                    var produktua = session.Get<Produktua>(dto.ProduktuaId, LockMode.Upgrade);
+                    if (produktua == null)
+                        throw new Exception($"Produktua ez da existitzen: {dto.ProduktuaId}");
+
+                    var ep = eskaerakoProduktuak
+                        .FirstOrDefault(x => x.Produktua.id == dto.ProduktuaId);
+
+                    if (ep == null)
+                    {
+                        // EZ badago → Gehitu + stocketik kendu
+                        if (produktua.stock_aktuala < dto.Kantitatea)
+                            throw new Exception($"Stock nahikorik ez: {produktua.izena}");
+
+                        produktua.stock_aktuala -= dto.Kantitatea;
+
+                        var berria = new EskaeraProduktuak
+                        {
+                            Eskaera = eskaera,
+                            Produktua = produktua,
+                            Kantitatea = dto.Kantitatea,
+                            PrezioUnitarioa = produktua.prezioa,
+                            Guztira = produktua.prezioa * dto.Kantitatea
+                        };
+
+                        eskaera.EskaeraProduktuak.Add(berria);
+                        session.Update(produktua);
+                    }
+                    else
+                    {
+                        // BADAGO → kantitatea aldatu da?
+                        int diferentzia = dto.Kantitatea - ep.Kantitatea;
+
+                        if (diferentzia != 0)
+                        {
+                            if (diferentzia > 0 && produktua.stock_aktuala < diferentzia)
+                                throw new Exception($"Stock nahikorik ez: {produktua.izena}");
+
+                            produktua.stock_aktuala -= diferentzia;
+
+                            ep.Kantitatea = dto.Kantitatea;
+                            ep.Guztira = ep.PrezioUnitarioa * ep.Kantitatea;
+
+                            session.Update(produktua);
+                            session.Update(ep);
+                        }
+                    }
+                }
+
+                // 3. Eskaeran badago baina bidalitakoetan ez
+                foreach (var ep in eskaerakoProduktuak)
+                {
+                    bool badagoDTOan = produktuak
+                        .Any(p => p.ProduktuaId == ep.Produktua.id);
+
+                    if (!badagoDTOan)
+                    {
+                        var produktua = session.Get<Produktua>(ep.Produktua.id, LockMode.Upgrade);
+                        produktua.stock_aktuala += ep.Kantitatea;
+
+                        eskaera.EskaeraProduktuak.Remove(ep);
+
+                        session.Update(produktua);
+                        session.Delete(ep);
+                    }
+                }
+
+                session.Update(eskaera);
+                tx.Commit();
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 200,
+                    Message = "Eskaera eguneratu da arrakastaz",
+                    Datuak = new List<string>()
+                };
+            }
+            catch (Exception ex)
+            {
+                try { tx.Rollback(); } catch { }
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 500,
+                    Message = ex.Message,
                     Datuak = new List<string>()
                 };
             }

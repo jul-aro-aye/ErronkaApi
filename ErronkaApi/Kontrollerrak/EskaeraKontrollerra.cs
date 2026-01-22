@@ -36,9 +36,9 @@ public class EskaeraKontrollerra : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult LortuEskaerak([FromQuery] int erabiltzaileId)
+    public IActionResult LortuEskaerak()
     {
-        var erantzuna = _repo.LortuEskaerak(erabiltzaileId);
+        var erantzuna = _repo.LortuEskaerak();
 
         return StatusCode(erantzuna.Code, erantzuna);
     }
@@ -79,5 +79,31 @@ public class EskaeraKontrollerra : ControllerBase
             return StatusCode(500, erantzuna);
     }
 
+    [HttpPut("{eskaeraId}")]
+    public IActionResult EguneratuEskaera(
+    int eskaeraId,
+    [FromBody] List<EskaeraProduktuaEditatuDTO> produktuak)
+    {
+        if (produktuak == null || !produktuak.Any())
+        {
+            return BadRequest(new ErantzunaDTO<string>
+            {
+                Code = 400,
+                Message = "Ez duzu produkturik bidali",
+                Datuak = new List<string>()
+            });
+        }
+
+        var erantzuna = _repo.EguneratuEskaera(eskaeraId, produktuak);
+
+        if (erantzuna.Code == 200)
+            return Ok(erantzuna);
+        else if (erantzuna.Code == 404)
+            return NotFound(erantzuna);
+        else if (erantzuna.Code == 400)
+            return BadRequest(erantzuna);
+        else
+            return StatusCode(500, erantzuna);
+    }
 
 }
