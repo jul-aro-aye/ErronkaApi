@@ -23,10 +23,31 @@ namespace ErronkaApi.Controlerrak
             var erabiltzailea = _repo.Login(loginDto.erabiltzailea, loginDto.pasahitza);
             if (erabiltzailea == null)
             {
-                return Unauthorized(new { mezua = "Erabiltzaile edo pasahitz okerra." });
+                return Unauthorized(new ErantzunaDTO<object>
+                {
+                    Code = 401,
+                    Message = "Erabiltzaile edo pasahitz okerra.",
+                    Datuak = null
+                });
             }
 
-            return Ok(erabiltzailea);
+            var erabiltzaileDatuak = new Erabiltzailea
+            {
+                id = erabiltzailea.id,
+                erabiltzailea = erabiltzailea.erabiltzailea,
+                emaila = erabiltzailea.emaila,
+                ezabatua = erabiltzailea.ezabatua,
+                txat = erabiltzailea.txat,
+                rola = new Rola { id = erabiltzailea.rola.id }
+            };
+
+            return Ok(new ErantzunaDTO<Erabiltzailea>
+            {
+                Code = 200,
+                Message = "Login ondo eginda",
+                Datuak = new List<Erabiltzailea> { erabiltzaileDatuak }
+            });
+
         }
 
     }

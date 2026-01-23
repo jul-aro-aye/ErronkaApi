@@ -15,6 +15,6 @@ namespace ErronkaApi.Modeloak
         public virtual string pasahitza { get; set; }
         public virtual Rola rola { get; set; }
         public virtual bool ezabatua { get; set; }
-        public virtual bool aktibatuta { get; set; }
+        public virtual bool txat { get; set; }
     }
 }
