@@ -82,9 +82,9 @@ public class EskaeraKontrollerra : ControllerBase
     [HttpPut("{eskaeraId}")]
     public IActionResult EguneratuEskaera(
     int eskaeraId,
-    [FromBody] List<EskaeraProduktuaEditatuDTO> produktuak)
+    [FromBody] EskaeraEguneratuDTO dto)
     {
-        if (produktuak == null || !produktuak.Any())
+        if (dto == null || dto.Produktuak == null || !dto.Produktuak.Any())
         {
             return BadRequest(new ErantzunaDTO<string>
             {
@@ -94,7 +94,7 @@ public class EskaeraKontrollerra : ControllerBase
             });
         }
 
-        var erantzuna = _repo.EguneratuEskaera(eskaeraId, produktuak);
+        var erantzuna = _repo.EguneratuEskaera(eskaeraId, dto.Komensalak, dto.Produktuak);
 
         if (erantzuna.Code == 200)
             return Ok(erantzuna);

@@ -137,6 +137,7 @@ namespace ErronkaApi.Repositorioak
                     Id = e.id,
                     Izena = $"Eskaera #{e.id} ({e.sortzeData:dd/MM/yyyy HH:mm})",
                     MahaiaId = e.mahaia_id,
+                    Komensalak = e.komensalak,
                     Data = e.sortzeData.ToString("yyyy-MM-dd HH:mm"),
                     SukaldeaEgoera = e.sukaldeaEgoera
                 }).ToList();
@@ -296,7 +297,7 @@ namespace ErronkaApi.Repositorioak
             }
         }
 
-        public ErantzunaDTO<string> EguneratuEskaera(int eskaeraId, List<EskaeraProduktuaEditatuDTO> produktuak)
+        public ErantzunaDTO<string> EguneratuEskaera(int eskaeraId, int komensalak, List<EskaeraProduktuaEditatuDTO> produktuak)
         {
 
             //1 eskaera lortu 
@@ -325,6 +326,11 @@ namespace ErronkaApi.Repositorioak
                 }
 
                 var eskaerakoProduktuak = eskaera.EskaeraProduktuak.ToList();
+
+                if (komensalak > 0)
+                {
+                    eskaera.komensalak = komensalak;
+                }
 
                 // 2. Bidalitako produktuak foreach
                 foreach (var dto in produktuak)
