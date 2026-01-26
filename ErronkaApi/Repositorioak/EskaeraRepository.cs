@@ -139,7 +139,7 @@ namespace ErronkaApi.Repositorioak
                     MahaiaId = e.mahaia_id,
                     Komensalak = e.komensalak,
                     Data = e.sortzeData.ToString("yyyy-MM-dd HH:mm"),
-                    SukaldeaEgoera = e.sukaldeaEgoera
+                    SukaldeaEgoera = string.IsNullOrWhiteSpace(e.sukaldeaEgoera) ? "zain" : e.sukaldeaEgoera
                 }).ToList();
 
                 return new ErantzunaDTO<EskaeraDTO>
@@ -270,6 +270,12 @@ namespace ErronkaApi.Repositorioak
                 {
                     foreach (var ep in eskaera.EskaeraProduktuak)
                     {
+                        var produktua = session.Get<Produktua>(ep.Produktua.id, LockMode.Upgrade);
+                        if (produktua != null)
+                        {
+                            produktua.stock_aktuala += ep.Kantitatea;
+                            session.Update(produktua);
+                        }
                         session.Delete(ep);
                     }
                 }
