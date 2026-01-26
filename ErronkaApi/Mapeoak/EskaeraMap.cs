@@ -12,9 +12,9 @@ public class EskaeraMap : ClassMap<Eskaera>
         Map(x => x.erabiltzaileId).Column("erabiltzaile_id");
         Map(x => x.komensalak).Column("komensalak");
         Map(x => x.egoera).Column("egoera");
+        Map(x => x.sukaldeaEgoera).Column("sukaldea_egoera");
         Map(x => x.sortzeData).Column("sortze_data");
         Map(x => x.itxieraData).Column("itxiera_data");
-        Map(x => x.erreserbaId).Column("erreserba_id");
 
         HasMany(x => x.EskaeraMahaiak)
             .KeyColumn("eskaera_id")

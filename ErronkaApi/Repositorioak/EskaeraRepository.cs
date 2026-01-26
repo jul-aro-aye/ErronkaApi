@@ -11,6 +11,12 @@ namespace ErronkaApi.Repositorioak
     public class EskaeraRepository
     {
         private readonly ISessionFactory _sessionFactory;
+        private static readonly HashSet<string> SukaldeaEgoerakOnartuak = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "zain",
+            "hasi",
+            "prest"
+        };
 
         public EskaeraRepository(ISessionFactory sessionFactory)
         {
@@ -62,6 +68,7 @@ namespace ErronkaApi.Repositorioak
                     erabiltzaileId = dto.ErabiltzaileId,
                     komensalak = dto.Komensalak,
                     egoera = "irekita",
+                    sukaldeaEgoera = "zain",
                     sortzeData = DateTime.Now,
                     mahaia_id = dto.MahaiaId
                 };
@@ -130,7 +137,8 @@ namespace ErronkaApi.Repositorioak
                     Id = e.id,
                     Izena = $"Eskaera #{e.id} ({e.sortzeData:dd/MM/yyyy HH:mm})",
                     MahaiaId = e.mahaia_id,
-                    Data = e.sortzeData.ToString("yyyy-MM-dd HH:mm")
+                    Data = e.sortzeData.ToString("yyyy-MM-dd HH:mm"),
+                    SukaldeaEgoera = e.sukaldeaEgoera
                 }).ToList();
 
                 return new ErantzunaDTO<EskaeraDTO>
@@ -394,6 +402,68 @@ namespace ErronkaApi.Repositorioak
                 {
                     Code = 200,
                     Message = "Eskaera eguneratu da arrakastaz",
+                    Datuak = new List<string>()
+                };
+            }
+            catch (Exception ex)
+            {
+                try { tx.Rollback(); } catch { }
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 500,
+                    Message = ex.Message,
+                    Datuak = new List<string>()
+                };
+            }
+        }
+
+        public ErantzunaDTO<string> EguneratuSukaldeaEgoera(int eskaeraId, string sukaldeaEgoera)
+        {
+            if (string.IsNullOrWhiteSpace(sukaldeaEgoera))
+            {
+                return new ErantzunaDTO<string>
+                {
+                    Code = 400,
+                    Message = "Sukaldea egoera derrigorrezkoa da",
+                    Datuak = new List<string>()
+                };
+            }
+
+            if (!SukaldeaEgoerakOnartuak.Contains(sukaldeaEgoera))
+            {
+                return new ErantzunaDTO<string>
+                {
+                    Code = 400,
+                    Message = "Sukaldea egoera ez da baliozkoa (zain, hasi, prest)",
+                    Datuak = new List<string>()
+                };
+            }
+
+            using var session = _sessionFactory.OpenSession();
+            using var tx = session.BeginTransaction();
+
+            try
+            {
+                var eskaera = session.Get<Eskaera>(eskaeraId);
+                if (eskaera == null)
+                {
+                    return new ErantzunaDTO<string>
+                    {
+                        Code = 404,
+                        Message = "Eskaera ez da aurkitu",
+                        Datuak = new List<string>()
+                    };
+                }
+
+                eskaera.sukaldeaEgoera = sukaldeaEgoera.ToLowerInvariant();
+                session.Update(eskaera);
+                tx.Commit();
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 200,
+                    Message = "Sukaldea egoera eguneratu da",
                     Datuak = new List<string>()
                 };
             }

@@ -10,9 +10,9 @@ namespace Api.Modeloak
         public virtual int erabiltzaileId { get; set; }
         public virtual int komensalak { get; set; }
         public virtual string egoera { get; set; }
+        public virtual string sukaldeaEgoera { get; set; }
         public virtual DateTime sortzeData { get; set; }
         public virtual DateTime? itxieraData { get; set; }
-        public virtual int? erreserbaId { get; set; }
 
         public virtual IList<EskaeraMahaiak> EskaeraMahaiak { get; set; } = new List<EskaeraMahaiak>();
 

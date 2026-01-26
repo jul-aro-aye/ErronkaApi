@@ -106,4 +106,29 @@ public class EskaeraKontrollerra : ControllerBase
             return StatusCode(500, erantzuna);
     }
 
+    [HttpPut("{eskaeraId}/sukaldea-egoera")]
+    public IActionResult EguneratuSukaldeaEgoera(int eskaeraId, [FromBody] EskaeraSukaldeaEgoeraDTO dto)
+    {
+        if (dto == null)
+        {
+            return BadRequest(new ErantzunaDTO<string>
+            {
+                Code = 400,
+                Message = "Datuak behar dira",
+                Datuak = new List<string>()
+            });
+        }
+
+        var erantzuna = _repo.EguneratuSukaldeaEgoera(eskaeraId, dto.SukaldeaEgoera);
+
+        if (erantzuna.Code == 200)
+            return Ok(erantzuna);
+        else if (erantzuna.Code == 404)
+            return NotFound(erantzuna);
+        else if (erantzuna.Code == 400)
+            return BadRequest(erantzuna);
+        else
+            return StatusCode(500, erantzuna);
+    }
+
 }
