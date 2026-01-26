@@ -24,10 +24,10 @@ namespace ErronkaApi.NHibernate
                 .Database(
                     MySQLConfiguration.Standard
                         .ConnectionString(cs => cs
-                            .Server("localhost") // 192.168.115.161  localhost
+                            .Server("192.168.1.10") // 192.168.1.10  localhost
                             .Database("tpv") // tpv
-                            .Username("root") // admin root
-                            .Password("1MG2024") // Taldea4 1MG2024
+                            .Username("admin") // admin root
+                            .Password("Taldea4") // Taldea4 1MG2024
                         )
                 )
                 .Mappings(m =>
@@ -38,6 +38,8 @@ namespace ErronkaApi.NHibernate
                     m.FluentMappings.AddFromAssemblyOf<MahaiaMap>();
                     m.FluentMappings.AddFromAssemblyOf<EskaeraMahaiakMap>();
                     m.FluentMappings.AddFromAssemblyOf<RolaMap>();
+                    m.FluentMappings.AddFromAssemblyOf<EskaeraProduktuakMap>();
+                    m.FluentMappings.AddFromAssemblyOf<KategoriaMap>();
                 })
                 .ExposeConfiguration(cfg =>
                 {

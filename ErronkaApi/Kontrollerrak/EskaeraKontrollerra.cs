@@ -131,4 +131,43 @@ public class EskaeraKontrollerra : ControllerBase
             return StatusCode(500, erantzuna);
     }
 
+    [HttpPost("{eskaeraId}/ordainduEskaera")]
+    public IActionResult OrdainduEskaera(int eskaeraId)
+    {
+        var erantzuna = _repo.OrdaintzeraBidali(eskaeraId);
+
+        if (erantzuna.Code == 200)
+            return Ok(erantzuna);
+        else if (erantzuna.Code == 404)
+            return NotFound(erantzuna);
+        else if (erantzuna.Code == 400)
+            return BadRequest(erantzuna);
+        else
+            return StatusCode(500, erantzuna);
+    }
+
+    [HttpPost("{eskaeraId}/sortuFaktura")]
+    public IActionResult SortuFaktura(int eskaeraId)
+    {
+        var erantzuna = _repo.SortuFaktura(eskaeraId);
+
+        if (erantzuna.Code == 200)
+            return Ok(erantzuna);
+        else if (erantzuna.Code == 404)
+            return NotFound(erantzuna);
+        else
+            return StatusCode(500, erantzuna);
+    }
+
+    [HttpGet("ordainketa-pendiente")]
+    public IActionResult LortuEskaerakOrdaintzeko()
+    {
+        var erantzuna = _repo.LortuEskaerakOrdaintzeko();
+
+        if (erantzuna.Code == 200)
+            return Ok(erantzuna);
+        else
+            return StatusCode(erantzuna.Code, erantzuna);
+    }
+
 }
