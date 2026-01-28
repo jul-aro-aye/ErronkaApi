@@ -32,7 +32,7 @@ namespace ErronkaApi.Repositorioak
             using var tx = session.BeginTransaction();
             try
             {
-                Console.WriteLine($"Mahaia jasota: {dto.MahaiaId}");
+                
                 var mahaia = session.Get<Mahaia>(dto.MahaiaId);
 
                 if (mahaia == null)
