@@ -260,6 +260,11 @@ namespace ErronkaApi.Repositorioak
                     };
                 }
 
+                // Lortu eskaeraren produktuak zuzenean databasetik eager loading bidez
+                var eskaeraProduktuak = session.Query<EskaeraProduktuak>()
+                    .Where(ep => ep.Eskaera.id == eskaeraId)
+                    .ToList();
+
                 if (eskaera.EskaeraMahaiak.Any())
                 {
                     foreach (var em in eskaera.EskaeraMahaiak)
@@ -270,9 +275,9 @@ namespace ErronkaApi.Repositorioak
                     }
                 }
 
-                if (eskaera.EskaeraProduktuak.Any())
+                if (eskaeraProduktuak.Any())
                 {
-                    foreach (var ep in eskaera.EskaeraProduktuak)
+                    foreach (var ep in eskaeraProduktuak)
                     {
                         var produktua = session.Get<Produktua>(ep.Produktua.id, LockMode.Upgrade);
                         if (produktua != null)
