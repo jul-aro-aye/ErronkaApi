@@ -5,6 +5,9 @@ using ErronkaApi.Modeloak;
 using ErronkaApi.NHibernate;
 using NHibernate;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace ErronkaApi.Repositorioak
 {
@@ -129,6 +132,7 @@ namespace ErronkaApi.Repositorioak
             try
             {
                 var eskaerak = session.Query<Eskaera>()
+                    .Where(e => e.egoera == "irekita")
                     .OrderByDescending(e => e.sortzeData)
                     .ToList();
 
@@ -488,6 +492,181 @@ namespace ErronkaApi.Repositorioak
                     Code = 500,
                     Message = ex.Message,
                     Datuak = new List<string>()
+                };
+            }
+        }
+        public ErantzunaDTO<string> OrdaintzeraBidali(int eskaeraId)
+        {
+            using var session = _sessionFactory.OpenSession();
+            using var tx = session.BeginTransaction();
+
+            try
+            {
+                var eskaera = session.Get<Eskaera>(eskaeraId);
+
+                if (eskaera == null)
+                {
+                    return new ErantzunaDTO<string>
+                    {
+                        Code = 404,
+                        Message = "Eskaera ez da aurkitu",
+                        Datuak = new List<string>()
+                    };
+                }
+
+                eskaera.egoera = "ordainketa_pendiente";
+
+                session.Update(eskaera);
+                tx.Commit();
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 200,
+                    Message = "Eskaera ordainketara bidali da",
+                    Datuak = new List<string>()
+                };
+            }
+            catch (Exception ex)
+            {
+                try { tx.Rollback(); } catch { }
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 500,
+                    Message = "Errore bat egon da: " + ex.Message,
+                    Datuak = new List<string>()
+                };
+            }
+        }
+
+        public ErantzunaDTO<string> SortuFaktura(int eskaeraId)
+        {
+            using var session = _sessionFactory.OpenSession();
+            using var tx = session.BeginTransaction();
+            try
+            {
+                var eskaera = session.Get<Eskaera>(eskaeraId);
+
+                if (eskaera == null)
+                    return new ErantzunaDTO<string>
+                    {
+                        Code = 404,
+                        Message = "Eskaera ez da aurkitu",
+                        Datuak = new List<string>()
+                    };
+
+                var produktuak = session.Query<EskaeraProduktuak>()
+                    .Where(p => p.Eskaera.id == eskaeraId)
+                    .ToList();
+
+                string escritorio = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string carpetaFakturak = Path.Combine(escritorio, "fakturak");
+
+                if (!Directory.Exists(carpetaFakturak))
+                    Directory.CreateDirectory(carpetaFakturak);
+
+                string filename = Path.Combine(carpetaFakturak, $"Faktura_Eskaera_{eskaeraId}.pdf");
+
+                using (var fs = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    var doc = new iTextSharp.text.Document(iTextSharp.text.PageSize.A4);
+                    var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, fs);
+                    doc.Open();
+
+                    doc.Add(new iTextSharp.text.Paragraph($"Faktura Eskaera #{eskaeraId}") { Alignment = iTextSharp.text.Element.ALIGN_CENTER, SpacingAfter = 20f });
+                    doc.Add(new iTextSharp.text.Paragraph($"Mahaia: {eskaera.mahaia_id}"));
+                    doc.Add(new iTextSharp.text.Paragraph($"Data: {eskaera.sortzeData:dd/MM/yyyy HH:mm}"));
+                    doc.Add(new iTextSharp.text.Paragraph(" "));
+
+                    var table = new iTextSharp.text.pdf.PdfPTable(4);
+                    table.WidthPercentage = 100;
+                    table.AddCell("Produktua");
+                    table.AddCell("Prezioa Unitarioa");
+                    table.AddCell("Kopurua");
+                    table.AddCell("Totala");
+
+                    decimal total = 0;
+
+                    foreach (var p in produktuak)
+                    {
+                        string produktuIzena = p.Produktua?.izena ?? "Ezezaguna";
+                        decimal prezioa = p.PrezioUnitarioa;
+                        int kantitatea = p.Kantitatea;
+                        decimal lineaTotala = prezioa * kantitatea;
+                        total += lineaTotala;
+
+                        table.AddCell(produktuIzena);
+                        table.AddCell(prezioa.ToString("C"));
+                        table.AddCell(kantitatea.ToString());
+                        table.AddCell(lineaTotala.ToString("C"));
+                    }
+
+                    doc.Add(table);
+
+                    doc.Add(new iTextSharp.text.Paragraph(" "));
+                    doc.Add(new iTextSharp.text.Paragraph($"TOTALA: {total:C}") { Alignment = iTextSharp.text.Element.ALIGN_RIGHT });
+
+                    doc.Close();
+                }
+
+                eskaera.egoera = "itxita";
+                session.Update(eskaera);
+                tx.Commit();
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 200,
+                    Message = $"Faktura ongi sortuta: {filename}",
+                    Datuak = new List<string> { filename }
+                };
+            }
+            catch (Exception ex)
+            {
+                try { tx.Rollback(); } catch { }
+
+                return new ErantzunaDTO<string>
+                {
+                    Code = 500,
+                    Message = "Arazoa faktura sortzean: " + ex.Message,
+                    Datuak = new List<string>()
+                };
+            }
+        }
+
+
+        public ErantzunaDTO<EskaeraDTO> LortuEskaerakOrdaintzeko()
+        {
+            using var session = _sessionFactory.OpenSession();
+            try
+            {
+                var eskaerak = session.Query<Eskaera>()
+                    .Where(e => e.egoera == "ordainketa_pendiente")
+                    .OrderByDescending(e => e.sortzeData)
+                    .ToList();
+
+                var dtoak = eskaerak.Select(e => new EskaeraDTO
+                {
+                    Id = e.id,
+                    Izena = $"Eskaera #{e.id} ({e.sortzeData:dd/MM/yyyy HH:mm})",
+                    MahaiaId = e.mahaia_id,
+                    Data = e.sortzeData.ToString("yyyy-MM-dd HH:mm"),
+                    SukaldeaEgoera = e.sukaldeaEgoera
+                }).ToList();
+
+                return new ErantzunaDTO<EskaeraDTO>
+                {
+                    Code = 200,
+                    Message = "Eskaerak lortu dira",
+                    Datuak = dtoak
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ErantzunaDTO<EskaeraDTO>
+                {
+                    Code = 500,
+                    Message = "Errore bat egon da: " + ex.Message,
+                    Datuak = new List<EskaeraDTO>()
                 };
             }
         }
