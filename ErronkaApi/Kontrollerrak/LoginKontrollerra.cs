@@ -10,6 +10,7 @@ namespace ErronkaApi.Controlerrak
     public class LoginKontrollera : ControllerBase
     {
         private readonly ErabiltzaileaRepository _repo;
+        private readonly string logKarpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "TPV_Logs");
 
         public LoginKontrollera(ErabiltzaileaRepository repo)
         {
@@ -23,6 +24,21 @@ namespace ErronkaApi.Controlerrak
             var erabiltzailea = _repo.Login(loginDto.erabiltzailea, loginDto.pasahitza);
             if (erabiltzailea == null)
             {
+                // Gorde login faltsua logean (erabiltzaile 0)
+                try
+                {
+                    string logKarpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "TPV_Logs");
+                    if (!Directory.Exists(logKarpeta)) Directory.CreateDirectory(logKarpeta);
+                    string eguna = DateTime.Now.ToString("yyyy-MM-dd");
+                    string fitxategia = Path.Combine(logKarpeta, $"TPV_Log_{eguna}.log");
+                    string ilara = $"{DateTime.Now:HH:mm:ss} | 0 | Login faltsua: {loginDto.erabiltzailea}";
+                    System.IO.File.AppendAllText(fitxategia, ilara + Environment.NewLine);
+                }
+                catch
+                {
+                    // Ignorar errores de logging para no bloquear la autenticación
+                }
+
                 return Unauthorized(new ErantzunaDTO<object>
                 {
                     Code = 401,
@@ -40,6 +56,20 @@ namespace ErronkaApi.Controlerrak
                 txat = erabiltzailea.txat,
                 rola = new Rola { id = erabiltzailea.rola.id }
             };
+
+            // Gorde login arrakastatsua logean
+            try
+            {
+                if (!Directory.Exists(logKarpeta)) Directory.CreateDirectory(logKarpeta);
+                string eguna = DateTime.Now.ToString("yyyy-MM-dd");
+                string fitxategia = Path.Combine(logKarpeta, $"TPV_Log_{eguna}.log");
+                string ilara = $"{DateTime.Now:HH:mm:ss} | {erabiltzailea.id} | Login ondo eginda";
+                System.IO.File.AppendAllText(fitxategia, ilara + Environment.NewLine);
+            }
+            catch
+            {
+                // Ignorar errores de logging
+            }
 
             return Ok(new ErantzunaDTO<Erabiltzailea>
             {
