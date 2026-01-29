@@ -574,21 +574,21 @@ namespace ErronkaApi.Repositorioak
 
                 using (var fs = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    var doc = new iTextSharp.text.Document(iTextSharp.text.PageSize.A4);
+                    float mmToPoints = 2.83465f;
+                    var pageWidth = 80 * mmToPoints;
+                    var pageHeight = 1000f;
+
+                    var doc = new iTextSharp.text.Document(new iTextSharp.text.Rectangle(pageWidth, pageHeight));
                     var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, fs);
                     doc.Open();
 
-                    doc.Add(new iTextSharp.text.Paragraph($"Faktura Eskaera #{eskaeraId}") { Alignment = iTextSharp.text.Element.ALIGN_CENTER, SpacingAfter = 20f });
-                    doc.Add(new iTextSharp.text.Paragraph($"Mahaia: {eskaera.mahaia_id}"));
-                    doc.Add(new iTextSharp.text.Paragraph($"Data: {eskaera.sortzeData:dd/MM/yyyy HH:mm}"));
-                    doc.Add(new iTextSharp.text.Paragraph(" "));
+                    var titleFont = iTextSharp.text.FontFactory.GetFont(iTextSharp.text.FontFactory.HELVETICA_BOLD, 10);
+                    var normalFont = iTextSharp.text.FontFactory.GetFont(iTextSharp.text.FontFactory.HELVETICA, 8);
 
-                    var table = new iTextSharp.text.pdf.PdfPTable(4);
-                    table.WidthPercentage = 100;
-                    table.AddCell("Produktua");
-                    table.AddCell("Prezioa Unitarioa");
-                    table.AddCell("Kopurua");
-                    table.AddCell("Totala");
+                    doc.Add(new iTextSharp.text.Paragraph("Beasain Jatetxea", titleFont) { Alignment = iTextSharp.text.Element.ALIGN_CENTER, SpacingAfter = 3f });
+                    doc.Add(new iTextSharp.text.Paragraph("NIF: X12345678", normalFont) { Alignment = iTextSharp.text.Element.ALIGN_CENTER });
+                    doc.Add(new iTextSharp.text.Paragraph($"Faktura #: {eskaeraId}", normalFont) { Alignment = iTextSharp.text.Element.ALIGN_CENTER, SpacingAfter = 5f });
+                    doc.Add(new iTextSharp.text.Paragraph($"Mahaia: {eskaera.mahaia_id}   Data: {eskaera.sortzeData:dd/MM/yyyy HH:mm}", normalFont) { SpacingAfter = 5f });
 
                     decimal total = 0;
 
@@ -600,16 +600,22 @@ namespace ErronkaApi.Repositorioak
                         decimal lineaTotala = prezioa * kantitatea;
                         total += lineaTotala;
 
-                        table.AddCell(produktuIzena);
-                        table.AddCell(prezioa.ToString("C"));
-                        table.AddCell(kantitatea.ToString());
-                        table.AddCell(lineaTotala.ToString("C"));
+                        var namePara = new iTextSharp.text.Paragraph(produktuIzena, normalFont) { SpacingAfter = 1f };
+                        doc.Add(namePara);
+
+                        var detailPara = new iTextSharp.text.Paragraph($"{kantitatea} x {prezioa.ToString("C")}    {lineaTotala.ToString("C")}", normalFont) { SpacingAfter = 3f };
+                        doc.Add(detailPara);
                     }
 
-                    doc.Add(table);
+                    doc.Add(new iTextSharp.text.Paragraph(" ", normalFont));
 
-                    doc.Add(new iTextSharp.text.Paragraph(" "));
-                    doc.Add(new iTextSharp.text.Paragraph($"TOTALA: {total:C}") { Alignment = iTextSharp.text.Element.ALIGN_RIGHT });
+                    // Erakutsi bakarrik TOTALA (prezioak BEZ barne daude)
+                    doc.Add(new iTextSharp.text.Paragraph($"TOTALA: {total.ToString("C")}", titleFont) { Alignment = iTextSharp.text.Element.ALIGN_RIGHT, SpacingBefore = 5f });
+                    doc.Add(new iTextSharp.text.Paragraph("Prezioak BEZ barne daude", normalFont) { Alignment = iTextSharp.text.Element.ALIGN_RIGHT, SpacingBefore = 2f });
+
+                    doc.Add(new iTextSharp.text.Paragraph(" ", normalFont));
+                    doc.Add(new iTextSharp.text.Paragraph("Enpresaren datuak: NIF: X12345678 | PV: 001", normalFont) { Alignment = iTextSharp.text.Element.ALIGN_CENTER, SpacingBefore = 8f });
+                    doc.Add(new iTextSharp.text.Paragraph("ESKERRIK ASKO", normalFont) { Alignment = iTextSharp.text.Element.ALIGN_CENTER, SpacingBefore = 8f });
 
                     doc.Close();
                 }
