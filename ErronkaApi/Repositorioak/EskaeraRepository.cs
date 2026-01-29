@@ -550,6 +550,9 @@ namespace ErronkaApi.Repositorioak
             using var tx = session.BeginTransaction();
             try
             {
+                var mahaiak = session.Query<Mahaia>()
+                    .Where(m => m.EskaeraMahaiak.Any(em => em.Eskaera.id == eskaeraId))
+                    .ToList();
                 var eskaera = session.Get<Eskaera>(eskaeraId);
 
                 if (eskaera == null)
@@ -622,6 +625,11 @@ namespace ErronkaApi.Repositorioak
 
                 eskaera.egoera = "itxita";
                 session.Update(eskaera);
+                mahaiak.ForEach(m =>
+                {
+                    m.egoera = "libre";
+                    session.Update(m);
+                });
                 tx.Commit();
 
                 return new ErantzunaDTO<string>
