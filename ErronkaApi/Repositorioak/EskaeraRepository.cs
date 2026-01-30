@@ -625,11 +625,6 @@ namespace ErronkaApi.Repositorioak
 
                 eskaera.egoera = "itxita";
                 eskaera.itxieraData = DateTime.Now;
-                // Borrar los productos asociados a la orden
-                foreach (var ep in produktuak)
-                {
-                    session.Delete(ep);
-                }
                 session.Update(eskaera);
                 mahaiak.ForEach(m =>
                 {

@@ -40,6 +40,7 @@ namespace ErronkaApi.NHibernate
                     m.FluentMappings.AddFromAssemblyOf<RolaMap>();
                     m.FluentMappings.AddFromAssemblyOf<EskaeraProduktuakMap>();
                     m.FluentMappings.AddFromAssemblyOf<KategoriaMap>();
+                    m.FluentMappings.AddFromAssemblyOf<EskaeraHistorikoaMap>();
                 })
                 .ExposeConfiguration(cfg =>
                 {
